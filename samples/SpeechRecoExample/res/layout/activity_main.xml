@@ -6,23 +6,36 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.microsoft.AzureIntelligentServicesExample.MainActivity" >
+    tools:context="com.microsoft.CognitiveServicesExample.MainActivity" >
 
-    <Button
-        android:id="@+id/button1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:text="Start" />
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Start"
+            />
 
-    <Button
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select Mode"
-        android:id="@+id/buttonSelectMode"
-        android:layout_alignParentRight="true" />
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/buttonSelectLanguage"
+            android:text="Select Language"
+            android:layout_centerHorizontal="true"
+            />
 
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Mode"
+            android:id="@+id/buttonSelectMode"
+            android:layout_alignParentRight="true" />
+
+
+    <!--选择模式-->
     <RadioGroup
         android:id="@+id/groupMode"
         android:layout_width="fill_parent"
@@ -67,6 +80,28 @@
             android:text="Use wav file and intent detection"
             android:id="@+id/dataShortIntentRadioButton" />
     </RadioGroup>
+
+    <!--选择语言-->
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/groupLanguage"
+        android:layout_below="@+id/buttonSelectLanguage">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/Chinese"
+            android:text="Chinese"/>
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/English"
+            android:text="English"/>
+
+    </RadioGroup>
+
+
 
     <EditText
         android:id="@+id/editText1"

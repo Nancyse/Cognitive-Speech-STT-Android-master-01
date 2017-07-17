@@ -63,7 +63,9 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
     FinalResponseStatus isReceivedResponse = FinalResponseStatus.NotReceived;  //响应状态
     EditText _logText;
     RadioGroup _radioGroup;
+    RadioGroup _radioLanguageGroup;
     Button _buttonSelectMode;
+    Button _buttonSelectLanguage;
     Button _startButton;
 
     String resultString=null;  //识别结果
@@ -98,10 +100,22 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
      * @return true if [use microphone]; otherwise, false.
      */
     private Boolean getUseMicrophone() {   //获取是否需要麦克风的指示
-        int id = this._radioGroup.getCheckedRadioButtonId();
+        int id = this._radioGroup.getCheckedRadioButtonId();  //被选择的id
         return id == R.id.micIntentRadioButton ||
                 id == R.id.micDictationRadioButton ||
                 id == (R.id.micRadioButton - 1);
+    }
+
+    /*
+    *获得选择的语言
+    * @return 默认下是英语
+    * */
+    private String getSelectedLanguage(){
+        int id= this._radioLanguageGroup.getCheckedRadioButtonId();
+        if( id == R.id.Chinese){
+            return "zh-cn";
+        }
+        return "en-us";
     }
 
     /**
@@ -184,6 +198,9 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
         this._buttonSelectMode = (Button)findViewById(R.id.buttonSelectMode);
         this._startButton = (Button) findViewById(R.id.button1);
 
+        this._radioLanguageGroup=(RadioGroup)findViewById(R.id.groupLanguage);
+        this._buttonSelectLanguage=(Button) findViewById(R.id.buttonSelectLanguage);
+
         if (getString(R.string.primaryKey).startsWith("Please")) {  //如果没有primary key的话
 			/*弹出输入订阅key的对话框*/
             new AlertDialog.Builder(this)
@@ -209,7 +226,25 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
             }
         });
 
+        //选择语言按钮
+        this._buttonSelectLanguage.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                This.ShowLanguageMenu(This._radioLanguageGroup.getVisibility() == View.INVISIBLE);
+            }
+        });
+
+
+        //选择模式模块
         this._radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup rGroup, int checkedId) {
+                This.RadioButton_Click(rGroup, checkedId);
+            }
+        });
+
+        //选择语言模块
+        this._radioLanguageGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup rGroup, int checkedId) {
                 This.RadioButton_Click(rGroup, checkedId);
@@ -219,26 +254,52 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
         this.ShowMenu(true);
     }
 
-    private void ShowMenu(boolean show) {  //显示菜单
-        if (show) {
+    /*
+    *显示select Mode
+    * */
+    private void ShowMenu(boolean show) {
+        if (show) {  //如果显示菜单
             this._radioGroup.setVisibility(View.VISIBLE);   //显示按钮
             this._logText.setVisibility(View.INVISIBLE);  //不显示文本
+            this._radioLanguageGroup.setVisibility(View.INVISIBLE); //不显示select language group
         } else {
             this._radioGroup.setVisibility(View.INVISIBLE);
+            this._radioLanguageGroup.setVisibility(View.INVISIBLE);
             this._logText.setText("");
             this._logText.setVisibility(View.VISIBLE);
         }
     }
+
+    /*
+    *显示select language
+    * */
+    private void ShowLanguageMenu(boolean show){
+        if(show){
+            this._radioLanguageGroup.setVisibility(View.VISIBLE);
+            this._logText.setVisibility(View.INVISIBLE);
+            this._radioGroup.setVisibility(View.INVISIBLE);
+        }
+        else{
+            this._radioGroup.setVisibility(View.INVISIBLE);
+            this._radioLanguageGroup.setVisibility(View.INVISIBLE);
+            this._logText.setText("");
+            this._logText.setVisibility(View.VISIBLE);
+        }
+    }
+
+
     /**
      * Handles the Click event of the _startButton control.  
      */
     private void StartButton_Click(View arg0) {  //“start”按钮的点击事件
         this._startButton.setEnabled(false);
         this._radioGroup.setEnabled(false);
+        this._radioLanguageGroup.setEnabled(false);
 
         this.m_waitSeconds = this.getMode() == SpeechRecognitionMode.ShortPhrase ? 20 : 200;  //获取语音模式对应的等待秒数
 
-        this.ShowMenu(false);
+        this.ShowMenu(false);  //不显示模式选择
+        this.ShowLanguageMenu(false);  //不显示语言选择
 
         this.LogRecognitionStart();  //初始化认知服务对象
 
@@ -252,7 +313,7 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
                     this.micClient =
                             SpeechRecognitionServiceFactory.createMicrophoneClientWithIntent(
                                     this,
-                                    this.getDefaultLocale(),
+                                    this.getSelectedLanguage(),
                                     this,
                                     this.getPrimaryKey(),
                                     this.getLuisAppId(),
@@ -263,7 +324,7 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
                     this.micClient = SpeechRecognitionServiceFactory.createMicrophoneClient(
                             this,
                             this.getMode(),
-                            this.getDefaultLocale(),
+                            this.getSelectedLanguage(),
                             this,
                             this.getPrimaryKey());
                 }
@@ -282,7 +343,7 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
                     this.dataClient =
                             SpeechRecognitionServiceFactory.createDataClientWithIntent(
                                     this,
-                                    this.getDefaultLocale(),
+                                    this.getSelectedLanguage(),
                                     this,
                                     this.getPrimaryKey(),
                                     this.getLuisAppId(),
@@ -292,7 +353,7 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
                     this.dataClient = SpeechRecognitionServiceFactory.createDataClient(
                             this,
                             this.getMode(),
-                            this.getDefaultLocale(),
+                            this.getSelectedLanguage(),
                             this,
                             this.getPrimaryKey());
                 }
@@ -318,7 +379,7 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
             recoSource = "long wav file";
         }
 
-        this.WriteLine("\n--- Start speech recognition using " + recoSource + " with " + this.getMode() + " mode in " + this.getDefaultLocale() + " language ----\n\n");
+        this.WriteLine("\n--- Start speech recognition using " + recoSource + " with " + this.getMode() + " mode in " + this.getSelectedLanguage() + " language ----\n\n");
     }
 
     private void SendAudioHelper(String filename) {    //发送语音
@@ -334,7 +395,7 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
         }
     }
 
-    public void onFinalResponseReceived(final RecognitionResult response) {   //当获得响应结果
+    public void onFinalResponseReceived(final RecognitionResult response) {   //当获得最终的响应结果
         //isFinalDicationMessage: 是否是长语音的最终的文本
         boolean isFinalDicationMessage = this.getMode() == SpeechRecognitionMode.LongDictation &&
                 (response.RecognitionStatus == RecognitionStatus.EndOfDictation ||
@@ -355,15 +416,16 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
             this.WriteLine("********* Final n-BEST Results *********");
 
             for (int i = 0; i < response.Results.length; i++) {
-                /*
+
                 this.WriteLine("[" + i + "]" + " Confidence=" + response.Results[i].Confidence +
                         " Text=\"" + response.Results[i].DisplayText + "\"");
-                */
+                /*
                 if (response.Results[i].Confidence== Confidence.High){
                     this.WriteLine(response.Results[i].DisplayText);
                     this.resultString=response.Results[i].DisplayText;
                     break;
                 }
+                */
 
             }
             this.WriteLine();
@@ -437,8 +499,8 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
      * @param rGroup The radio grouping.
      * @param checkedId The checkedId.
      */
-    private void RadioButton_Click(RadioGroup rGroup, int checkedId) {  //  单选按钮的选项
-        // Reset everything
+    private void RadioButton_Click(RadioGroup rGroup, int checkedId) {  //  当RadioGroup被点击时
+        // Reset everything  重置所有
         if (this.micClient != null) {
             this.micClient.endMicAndRecognition();
             try {
@@ -451,7 +513,7 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
 
         if (this.dataClient != null) {
             try {
-                this.dataClient.finalize();
+                this.dataClient.finalize();  //断开与接口的连接
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
             }
@@ -497,10 +559,10 @@ public class MainActivity extends Activity implements ISpeechRecognitionServerEv
                 byte[] buffer = new byte[1024];  //缓存窗口
 
                 do {
-                    // Get  Audio data to send into byte buffer.
+                    // Get  Audio data to send into byte buffer
                     bytesRead = fileStream.read(buffer);
 
-                    if (bytesRead > -1) {
+                    if ( bytesRead > -1) {
                         // Send of audio data to service. 
                         dataClient.sendAudio(buffer, bytesRead);   //发送语音
                     }
